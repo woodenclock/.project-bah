@@ -1,26 +1,36 @@
 import logging
 from typing import Final
+
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
+
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+
+
+# Initialization
+TOKEN: Final = "6915448696:AAGa692f2FuuPsMzjhyw5b-Lllnc00g5f3M"
+BOT_USERNAME: Final = "@Hack4GoodBOT"
+
+
+# Google Sheets information
+SHEET_ID: Final = "1dQOfj3kamyPNE5X0mO7YVlKtCP4awO_XX7B4Vhf9sZc"
+volunteers_sheet_name = 'Volunteers'
+opportunities_sheet_name = 'Opportunities'
+response_sheet_name = 'Response'
 
 
 # Set up logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
+
 # Load credentials for Google Sheets
-scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name('your-credentials.json', scope)
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/spreadsheets"]
+creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
 client = gspread.authorize(creds)
 
-# Google Sheets information
-SHEET_ID: Final = "1dQOfj3kamyPNE5X0mO7YVlKtCP4awO_XX7B4Vhf9sZc"
-volunteers_sheet_name = 'Volunteers'
-opportunities_sheet_name = '0'
-response_sheet_name = 'Response'
 
-# Command handlers
+# Commands
 def start(update: Update, context: CallbackContext) -> None:
     update.message.reply_text("Welcome to the Volunteer Chatbot! Type /help to see available commands.")
 
@@ -34,9 +44,12 @@ def help_command(update: Update, context: CallbackContext) -> None:
         "/certificate - Request a certificate for attended events"
     )
 
+'''
 def enroll(update: Update, context: CallbackContext) -> None:
     # Implement the logic to enroll as a new volunteer and save information to Google Sheets
     # ...
+'''
+
 
 def browse(update: Update, context: CallbackContext) -> None:
     # Access the sheet with volunteering opportunities
@@ -61,6 +74,7 @@ def browse(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(message)
 
 
+'''
 def attended(update: Update, context: CallbackContext) -> None:
     # Implement the logic to check attended opportunities
     # ...
@@ -76,25 +90,28 @@ def feedback(update: Update, context: CallbackContext) -> None:
 def certificate(update: Update, context: CallbackContext) -> None:
     # Implement the logic to request a certificate for attended events
     # ...
+'''
+
 
 def main() -> None:
     # Set up the bot
-    updater = Updater("your-telegram-bot-token")
-    dp = updater.dispatcher
+    print('Starting Hack4GoodBOT...')
+    app = Application.builder().token(TOKEN).build()
 
-    # Add command handlers
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("help", help_command))
-    dp.add_handler(CommandHandler("enroll", enroll))
-    dp.add_handler(CommandHandler("browse", browse))
-    dp.add_handler(CommandHandler("attended", attended))
-    dp.add_handler(CommandHandler("upcoming", upcoming))
-    dp.add_handler(CommandHandler("feedback", feedback))
-    dp.add_handler(CommandHandler("certificate", certificate))
+    # Commands
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("help", help_command))
+    #dp.add_handler(CommandHandler("enroll", enroll))
+    app.add_handler(CommandHandler("browse", browse))
+    #dp.add_handler(CommandHandler("attended", attended))
+    #dp.add_handler(CommandHandler("upcoming", upcoming))
+    #dp.add_handler(CommandHandler("feedback", feedback))
+    #dp.add_handler(CommandHandler("certificate", certificate))
 
-    # Start the bot
-    updater.start_polling()
-    updater.idle()
+    # Polls the bot
+    print('Polling...')
+    app.run_polling(poll_interval = 1)
+
 
 if __name__ == '__main__':
     main()
