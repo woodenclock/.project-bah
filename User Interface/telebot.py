@@ -1,8 +1,10 @@
 import logging
+from typing import Final
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import Updater, CommandHandler, MessageHandler, filters, CallbackContext
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+
 
 # Set up logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -13,9 +15,10 @@ creds = ServiceAccountCredentials.from_json_keyfile_name('your-credentials.json'
 client = gspread.authorize(creds)
 
 # Google Sheets information
-spreadsheet_key = 'your-spreadsheet-key'
+SHEET_ID: Final = "1dQOfj3kamyPNE5X0mO7YVlKtCP4awO_XX7B4Vhf9sZc"
 volunteers_sheet_name = 'Volunteers'
-opportunities_sheet_name = 'Opportunities'
+opportunities_sheet_name = '0'
+response_sheet_name = 'Response'
 
 # Command handlers
 def start(update: Update, context: CallbackContext) -> None:
@@ -36,8 +39,27 @@ def enroll(update: Update, context: CallbackContext) -> None:
     # ...
 
 def browse(update: Update, context: CallbackContext) -> None:
-    # Implement the logic to browse volunteering opportunities and sign up
-    # ...
+    # Access the sheet with volunteering opportunities
+    sheet = client.open_by_key(SHEET_ID).worksheet(opportunities_sheet_name)
+
+    # Fetch all records from the sheet
+    opportunities = sheet.get_all_records()
+
+    # Check if there are any opportunities listed
+    if not opportunities:
+        update.message.reply_text("Currently, there are no volunteering opportunities available.")
+        return
+
+    # Construct a message listing all opportunities
+    message = "Here are the current volunteering opportunities available to join:\n\n"
+    for idx, opportunity in enumerate(opportunities, start=1):
+        # Assuming columns for 'Event Name', 'Date', 'Location', and 'Description'
+        message += f"{idx}. {opportunity['Event Name']} - {opportunity['Date']} at {opportunity['Location']}\n" \
+                   f"Description: {opportunity['Description']}\n\n"
+
+    # Send the constructed message
+    update.message.reply_text(message)
+
 
 def attended(update: Update, context: CallbackContext) -> None:
     # Implement the logic to check attended opportunities
