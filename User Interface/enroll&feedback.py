@@ -164,6 +164,22 @@ def confirm_summary(update, context):
 
     return ConversationHandler.END
 
+def feedback(update, context):
+    # Provide the Google Form link for feedback
+    feedback_link = "https://www.youtube.com/watch?v=vZtm1wuA2yc&t=1138s&ab_channel=Indently"
+
+    # Create an InlineKeyboardButton with the feedback link
+    button = InlineKeyboardButton("Provide Feedback", url=feedback_link)
+
+    # Create an InlineKeyboardMarkup with the button
+    keyboard = InlineKeyboardMarkup([[button]])
+
+    # Send a message with the feedback link and the button
+    update.message.reply_text(
+        "Please provide your feedback using the following link:",
+        reply_markup=keyboard
+    )
+
 def cancel(update, context):
     # Clear the user_data and end the conversation
     del user_data[update.message.chat_id]
@@ -196,6 +212,8 @@ def main():
 
     # Add the start command handler
     dispatcher.add_handler(CommandHandler('start', start))
+
+    dispatcher.add_handler(CommandHandler('feedback', feedback))
 
     # Start the bot
     updater.start_polling()
