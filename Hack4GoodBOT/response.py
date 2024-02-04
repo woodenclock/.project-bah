@@ -1,10 +1,23 @@
 from Hack4GoodBOT.config import config
+from Hack4GoodBOT.command import enroll_command
 from telegram import Update
 from telegram.ext import (ContextTypes)
 
 
+# Define a function to check the current conversation state
+def is_in_excluded_state(context):
+    excluded_states = [enroll_command.NAME, enroll_command.AGE, enroll_command.GENDER,
+                       enroll_command.WORK_STATUS, enroll_command.IMMIGRATION_STATUS,
+                       enroll_command.INTERESTS, enroll_command.SKILLS, enroll_command.SUMMARY]
+    return context.user_data.get('state') in excluded_states
+
+
 # Response
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Check if the bot is in an excluded state
+    if is_in_excluded_state(context):
+        return
+
     message_type: str = update.message.chat.type
     text: str = update.message.text
 
