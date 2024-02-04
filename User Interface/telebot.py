@@ -93,6 +93,7 @@ def certificate(update: Update, context: CallbackContext) -> None:
 '''
 
 
+# Main
 def main() -> None:
     # Set up the bot
     print('Starting Hack4GoodBOT...')
