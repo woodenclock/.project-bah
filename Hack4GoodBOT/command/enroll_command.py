@@ -169,7 +169,7 @@ async def confirm_summary(update, context):
 
 async def feedback(update, context):
     # Provide the Google Form link for feedback
-    feedback_link = "https://www.youtube.com/watch?v=vZtm1wuA2yc&t=1138s&ab_channel=Indently"
+    feedback_link = "https://forms.gle/547D2dEf32PaJBSE7"
 
     # Create an InlineKeyboardButton with the feedback link
     button = InlineKeyboardButton("Provide Feedback", url=feedback_link)
