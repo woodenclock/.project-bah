@@ -1,7 +1,7 @@
 import response
 from Hack4GoodBOT.config import config
 from Hack4GoodBOT.command import help_command, browse_command, attended_command, register_command, \
-    upcoming_command
+    upcoming_command, feedback_command
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (Application, CommandHandler, ConversationHandler, MessageHandler, filters, ContextTypes,
                           CallbackQueryHandler)
@@ -221,6 +221,7 @@ def main() -> None:
     app.add_handler(CommandHandler("register", register_command.register_command))
     app.add_handler(CommandHandler("attended", attended_command.attended_command))
     app.add_handler(CommandHandler("upcoming", upcoming_command.upcoming_command))
+    app.add_handler(CommandHandler("feedback", feedback_command.feedback_command))
 
     # Callback query handler for buttons
     app.add_handler(CallbackQueryHandler(register_command.button_callback_handler, pattern='^register_'))
