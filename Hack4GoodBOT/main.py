@@ -1,12 +1,7 @@
-import config
-import help_command
-import enroll_command
-import browse_command
-import register_command
-import attended_command
-import upcoming_command
 import response
-
+from Hack4GoodBOT.config import config
+from Hack4GoodBOT.command import help_command, enroll_command, browse_command, attended_command, register_command, \
+    upcoming_command
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (Application, CommandHandler, ConversationHandler, MessageHandler, filters, ContextTypes,
                           CallbackContext, CallbackQueryHandler)
@@ -36,8 +31,6 @@ def main() -> None:
     app.add_handler(CommandHandler("register", register_command.register_command))
     app.add_handler(CommandHandler("attended", attended_command.attended_command))
     app.add_handler(CommandHandler("upcoming", upcoming_command.upcoming_command))
-    # dp.add_handler(CommandHandler("feedback", feedback))
-    # dp.add_handler(CommandHandler("certificate", certificate))
 
     # Callback query handler for buttons
     app.add_handler(CallbackQueryHandler(register_command.button_callback_handler, pattern='^register_'))
@@ -45,25 +38,27 @@ def main() -> None:
         CallbackQueryHandler(register_command.confirmation_callback_handler, pattern='^(confirm_registration'
                                                                                      '|cancel_registration)$'))
 
-    # Conversation Handler
+    # Define the conversation handler
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('enroll', enroll_command.enroll_command)],
         states={
-            enroll_command.GENDER: [CallbackQueryHandler(enroll_command.gender_selection)],
-            enroll_command.WORK_STATUS: [CallbackQueryHandler(enroll_command.work_status_selection)],
-            enroll_command.IMMIGRATION_STATUS: [CallbackQueryHandler(enroll_command.immigration_status_selection)],
-            enroll_command.INTERESTS: [CallbackQueryHandler(enroll_command.interests_selection)],
-            enroll_command.SKILLS: [CallbackQueryHandler(enroll_command.skills_selection)],
-            enroll_command.CONFIRMATION: [CallbackQueryHandler(enroll_command.confirmation),
-                                          CallbackQueryHandler(enroll_command.save_to_sheet,
-                                                               pattern='^(confirm|cancel)$')],
+            enroll_command.NAME: [MessageHandler(filters.TEXT, enroll_command.ask_name)],
+            enroll_command.AGE: [MessageHandler(filters.TEXT, enroll_command.ask_gender)],
+            enroll_command.GENDER: [CallbackQueryHandler(enroll_command.ask_work_status)],
+            enroll_command.WORK_STATUS: [CallbackQueryHandler(enroll_command.ask_immigration_status)],
+            enroll_command.IMMIGRATION_STATUS: [CallbackQueryHandler(enroll_command.ask_interests)],
+            enroll_command.INTERESTS: [CallbackQueryHandler(enroll_command.ask_skills)],
+            enroll_command.SKILLS: [CallbackQueryHandler(enroll_command.ask_summary)],
+            enroll_command.SUMMARY: [CallbackQueryHandler(enroll_command.confirm_summary)]
         },
         fallbacks=[CommandHandler('cancel', enroll_command.cancel)]
     )
+
+    # Add the conversation handler to the app
     app.add_handler(conv_handler)
 
     # Messages
-    app.add_handler(MessageHandler(filters.TEXT, response.handle_message))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, response.handle_message))
 
     # Errors
     app.add_error_handler(error)
