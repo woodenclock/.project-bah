@@ -16,19 +16,18 @@ SKILLS_BUTTONS = ["Leadership", "Technical and Digital Skills", "Teaching and Me
 user_data = {}
 
 
-async def enroll_command(update, context):
+async def start_enroll(update, context):
     # Initialize user data in the conversation
     user_data[update.message.chat_id] = {}
 
     # Ask for the user's name
-    await update.message.reply_text("Please enter your name:")
+    await update.message.reply_text("Input \"/cancel\" to cancel your enrollment.\nPlease enter your name:")
     return NAME
 
 
 async def ask_name(update, context):
     # Store the user's name in the user_data dictionary
     user_data[update.message.chat_id]['name'] = update.message.text
-    context.user_data['state'] = NAME  # Track the current state
 
     # Ask for age
     await update.message.reply_text("Please enter your age:")
@@ -143,7 +142,7 @@ async def ask_summary(update, context):
     # Display the summary to the user
     await update.callback_query.message.reply_text(
         f"Here is a summary of your information:\n\n{summary}\n\nPlease proceed to browsing our available "
-        f"oppotunities by clicking /view_opportunities!")
+        f"opportunities by clicking /browse!")
 
     return SUMMARY
 
@@ -162,30 +161,13 @@ async def confirm_summary(update, context):
     else:
         # Information is incorrect, restart the enrollment process
         await update.callback_query.message.reply_text("Okay, let's start over.")
-        return enroll_command(update, context)
+        return start_enroll(update, context)
 
     return ConversationHandler.END
-
-
-async def feedback(update, context):
-    # Provide the Google Form link for feedback
-    feedback_link = "https://forms.gle/547D2dEf32PaJBSE7"
-
-    # Create an InlineKeyboardButton with the feedback link
-    button = InlineKeyboardButton("Provide Feedback", url=feedback_link)
-
-    # Create an InlineKeyboardMarkup with the button
-    keyboard = InlineKeyboardMarkup([[button]])
-
-    # Send a message with the feedback link and the button
-    await update.message.reply_text(
-        "Please provide your feedback using the following link:",
-        reply_markup=keyboard
-    )
 
 
 async def cancel(update, context):
     # Clear the user_data and end the conversation
     del user_data[update.message.chat_id]
     await update.message.reply_text("Okay, let's start over.")
-    return enroll_command(update, context)
+    return start_enroll(update, context)
