@@ -44,7 +44,8 @@ def main() -> None:
             enroll_command.IMMIGRATION_STATUS: [CallbackQueryHandler(enroll_command.ask_interests)],
             enroll_command.INTERESTS: [CallbackQueryHandler(enroll_command.ask_skills)],
             enroll_command.SKILLS: [CallbackQueryHandler(enroll_command.ask_summary)],
-            enroll_command.SUMMARY: [CallbackQueryHandler(enroll_command.confirm_summary)]
+            enroll_command.SUMMARY: [CallbackQueryHandler(enroll_command.handle_confirmation,
+                                                          pattern='^confirm_(yes|no)$')]
         },
         fallbacks=[CommandHandler('cancel', enroll_command.cancel)]
     )

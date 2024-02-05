@@ -1,5 +1,8 @@
+from Hack4GoodBOT.config import config
+from googleapiclient.discovery import build
+from google.oauth2.service_account import Credentials
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, ConversationHandler, MessageHandler, filters
+from telegram.ext import ConversationHandler
 
 # Define the conversation states
 NAME, AGE, GENDER, WORK_STATUS, IMMIGRATION_STATUS, INTERESTS, SKILLS, SUMMARY = range(8)
@@ -17,11 +20,16 @@ user_data = {}
 
 
 async def start_enroll(update, context):
-    # Initialize user data in the conversation
-    user_data[update.message.chat_id] = {}
+    # Get User ID & Tele Handle
+    chat_id = update.message.chat_id
+    user_data[chat_id] = {
+        'telegram_user_id': chat_id,
+        'telegram_username': update.message.from_user.username,
+    }
 
     # Ask for the user's name
-    await update.message.reply_text("Input \"/cancel\" to cancel your enrollment.\nPlease enter your name:")
+    await update.message.reply_text("Let's get you enrolled into the Big At Hearts family! 🤩\n"
+                                    "Type  \'/cancel\'  to stop your enrollment.\nPlease enter your name:")
     return NAME
 
 
@@ -30,7 +38,9 @@ async def ask_name(update, context):
     user_data[update.message.chat_id]['name'] = update.message.text
 
     # Ask for age
-    await update.message.reply_text("Please enter your age:")
+    await update.message.reply_text(f"Hi {user_data[update.message.chat_id]['name']} 🖐️\n"
+                                    f"Nice to meet you!\n"
+                                    f"Please enter your age:")
     return AGE
 
 
@@ -65,7 +75,7 @@ async def ask_work_status(update, context):
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     # Ask for work status
-    await update.callback_query.message.reply_text("Please choose your work status:", reply_markup=reply_markup)
+    await update.callback_query.message.edit_text("Please choose your work status:", reply_markup=reply_markup)
     return WORK_STATUS
 
 
@@ -82,7 +92,7 @@ async def ask_immigration_status(update, context):
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     # Ask for immigration status
-    await update.callback_query.message.reply_text("Please choose your immigration status:", reply_markup=reply_markup)
+    await update.callback_query.message.edit_text("Please choose your immigration status:", reply_markup=reply_markup)
     return IMMIGRATION_STATUS
 
 
@@ -102,7 +112,7 @@ async def ask_interests(update, context):
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     # Ask for interests
-    await update.callback_query.message.reply_text("Please choose your interests:", reply_markup=reply_markup)
+    await update.callback_query.message.edit_text("Please choose your interests:", reply_markup=reply_markup)
     return INTERESTS
 
 
@@ -119,7 +129,7 @@ async def ask_skills(update, context):
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     # Ask for skills
-    await update.callback_query.message.reply_text("Please choose your skills:", reply_markup=reply_markup)
+    await update.callback_query.message.edit_text("Please choose your skills:", reply_markup=reply_markup)
     return SKILLS
 
 
@@ -140,30 +150,68 @@ async def ask_summary(update, context):
     user_data[update.callback_query.message.chat_id]['summary'] = summary
 
     # Display the summary to the user
-    await update.callback_query.message.reply_text(
-        f"Here is a summary of your information:\n\n{summary}\n\nPlease proceed to browsing our available "
-        f"opportunities by clicking /browse!")
+    keyboard = [
+        [InlineKeyboardButton("Yes", callback_data='confirm_yes')],
+        [InlineKeyboardButton("No", callback_data='confirm_no')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.callback_query.message.edit_text(
+        f"Here is a summary of your information:\n\n{summary}\n\nConfirm your choices?",
+        reply_markup=reply_markup
+    )
 
     return SUMMARY
 
 
-async def confirm_summary(update, context):
-    # Get the user's response
-    response = update.callback_query.data
+async def handle_confirmation(update, context):
+    query = update.callback_query
+    await query.answer()  # Important to provide feedback to the user that their click was received
 
-    if response == "Yes":
-        # Information is correct, enrollment is complete
-        await update.callback_query.message.reply_text("Thank you for enrolling. Your enrollment is complete!")
-
+    if query.data == 'confirm_yes':
+        # Save the data to Google Sheets
+        save_to_google_sheets(user_data[query.message.chat_id])
+        await query.edit_message_text("Thank you for enrolling.\n"
+                                      "You are now a member of the Big At Hearts family! 👨‍👩‍👧‍👦")
         # Clear the user_data
-        del user_data[update.callback_query.message.chat_id]
+        del user_data[query.message.chat_id]
 
-    else:
-        # Information is incorrect, restart the enrollment process
-        await update.callback_query.message.reply_text("Okay, let's start over.")
-        return start_enroll(update, context)
+    elif query.data == 'confirm_no':
+        await query.edit_message_text("Okay, let's start over.")
+        # Optionally, clear the user_data or restart the process
+        del user_data[query.message.chat_id]
 
     return ConversationHandler.END
+
+
+def save_to_google_sheets(data):
+    credentials = Credentials.from_service_account_file(
+        config.SERVICE_ACCOUNT_FILE, scopes=config.scope)
+
+    service = build('sheets', 'v4', credentials=credentials)
+
+    spreadsheet_id = config.SHEET_ID
+    range_name = 'Volunteers!A2'  # Adjust based on your needs
+    values = [[
+        data['name'],
+        data['telegram_user_id'],
+        data['telegram_username'],
+        data['age'],
+        data['gender'],
+        data['work_status'],
+        data['immigration_status'],
+        data['interests'],
+        data['skills']
+    ]]
+
+    body = {'values': values}
+
+    try:
+        result = service.spreadsheets().values().append(
+            spreadsheetId=spreadsheet_id, range=range_name,
+            valueInputOption='USER_ENTERED', body=body).execute()
+        print(f"{result.get('updates').get('updatedCells')} cells appended.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 async def cancel(update, context):

@@ -17,6 +17,7 @@ volunteer_sheet_name = 'Volunteers'
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 # Load credentials for Google Sheets
+SERVICE_ACCOUNT_FILE = 'config/credentials.json'
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/spreadsheets"]
 creds = ServiceAccountCredentials.from_json_keyfile_name('config/credentials.json', scope)
 client = gspread.authorize(creds)
