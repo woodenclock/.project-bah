@@ -2,12 +2,12 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 def create_certificate(
-    name, date, course
+        name, date, course
 ):
-    template_path = "Certificate/certificate_template.png"
+    template_path = "./certificate_template.png"
     font_path = "Certificate/times.ttf"
     name_position = (1000, 707)
-    output_path = "Certificate/personalized_certificate.png"
+    output_path = "./personalized_certificate.png"
 
     # Load the certificate template
     image = Image.open(template_path)
@@ -17,11 +17,11 @@ def create_certificate(
     name_font = ImageFont.truetype(font_path, 150)
     # Add name text
     name_text_width = draw.textlength(name, font=name_font)
-        # Calculate the position
+
+    # Calculate the position
     x = name_position[0] - name_text_width / 2
     y = name_position[1] - 80
     draw.text((x, y), name, font=name_font, align="center", fill="black")
-
 
     # Add date text
     date_font = ImageFont.truetype(font_path, 40)
@@ -36,10 +36,10 @@ def create_certificate(
     # Save the modified image
     image.save(output_path)
 
+
 # Example usage
-name = "Katelyn Choo"
+name = "Katelyn Choo Choo"
 date = "21 September 2023"
 course = "Digital Literacy Trainer 1"
-
 
 create_certificate(name, date, course)

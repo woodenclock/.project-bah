@@ -1,22 +1,11 @@
-import response
+import Miscellaneous.response
 from Hack4GoodBOT.config import config
-from Hack4GoodBOT.command import help_command, browse_command, attended_command, register_command, \
-    upcoming_command, feedback_command
+from Hack4GoodBOT.command import (help_command, browse_command, attended_command, register_command,
+                                  upcoming_command, feedback_command)
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (Application, CommandHandler, ConversationHandler, MessageHandler, filters, ContextTypes,
                           CallbackQueryHandler)
 
-
-# Start Command
-async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("Hi there, I am Hack4GoodBOT!\nType /help to see available commands.")
-
-
-# Error
-async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print(f'Update {update} caused error {context.error}')
-    
-# Enroll
 # Define the conversation states
 NAME, AGE, GENDER, WORK_STATUS, IMMIGRATION_STATUS, INTERESTS, SKILLS, SUMMARY = range(8)
 
@@ -32,19 +21,18 @@ SKILLS_BUTTONS = ["Leadership", "Technical and Digital Skills", "Teaching and Me
 user_data = {}
 
 
-async def enroll_command(update, context):
+async def start_enroll(update, context):
     # Initialize user data in the conversation
     user_data[update.message.chat_id] = {}
 
     # Ask for the user's name
-    await update.message.reply_text("Please enter your name:")
+    await update.message.reply_text("Input \"/cancel\" to cancel your enrollment.\nPlease enter your name:")
     return NAME
 
 
 async def ask_name(update, context):
     # Store the user's name in the user_data dictionary
     user_data[update.message.chat_id]['name'] = update.message.text
-    context.user_data['state'] = NAME  # Track the current state
 
     # Ask for age
     await update.message.reply_text("Please enter your age:")
@@ -158,8 +146,7 @@ async def ask_summary(update, context):
 
     # Display the summary to the user
     await update.callback_query.message.reply_text(
-        f"Here is a summary of your information:\n\n{summary}\n\nPlease proceed to browsing our available "
-        f"oppotunities by clicking /view_opportunities!")
+        f"Here is a summary of your information:\n\n{summary}\n\nPlease proceed to browsing our available oppotunities by clicking /browse!")
 
     return SUMMARY
 
@@ -178,33 +165,26 @@ async def confirm_summary(update, context):
     else:
         # Information is incorrect, restart the enrollment process
         await update.callback_query.message.reply_text("Okay, let's start over.")
-        return enroll_command(update, context)
+        return start_enroll(update, context)
 
     return ConversationHandler.END
-
-
-async def feedback(update, context):
-    # Provide the Google Form link for feedback
-    feedback_link = "https://www.youtube.com/watch?v=vZtm1wuA2yc&t=1138s&ab_channel=Indently"
-
-    # Create an InlineKeyboardButton with the feedback link
-    button = InlineKeyboardButton("Provide Feedback", url=feedback_link)
-
-    # Create an InlineKeyboardMarkup with the button
-    keyboard = InlineKeyboardMarkup([[button]])
-
-    # Send a message with the feedback link and the button
-    await update.message.reply_text(
-        "Please provide your feedback using the following link:",
-        reply_markup=keyboard
-    )
 
 
 async def cancel(update, context):
     # Clear the user_data and end the conversation
     del user_data[update.message.chat_id]
     await update.message.reply_text("Okay, let's start over.")
-    return enroll_command(update, context)
+    return start_enroll(update, context)
+
+
+# Start Command
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Hi there, I am Hack4GoodBOT!\nType /help to see available commands.")
+
+
+# Error
+async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print(f'Update {update} caused error {context.error}')
 
 
 # Main
@@ -216,7 +196,6 @@ def main() -> None:
     # Commands
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("help", help_command.help_command))
-    app.add_handler(CommandHandler("enroll", enroll_command))
     app.add_handler(CommandHandler("browse", browse_command.browse_command))
     app.add_handler(CommandHandler("register", register_command.register_command))
     app.add_handler(CommandHandler("attended", attended_command.attended_command))
@@ -231,7 +210,7 @@ def main() -> None:
 
     # Define the conversation handler
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('enroll', enroll_command)],
+        entry_points=[CommandHandler('enroll', start_enroll)],
         states={
             NAME: [MessageHandler(filters.TEXT, ask_name)],
             AGE: [MessageHandler(filters.TEXT, ask_gender)],
@@ -245,11 +224,11 @@ def main() -> None:
         fallbacks=[CommandHandler('cancel', cancel)]
     )
 
-    # Add the conversation handler to the app
+    # Add the conversation handler to the dispatcher
     app.add_handler(conv_handler)
 
     # Messages
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, response.handle_message))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, Miscellaneous.response.handle_message))
 
     # Errors
     app.add_error_handler(error)
