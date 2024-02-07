@@ -18,6 +18,27 @@ def main() -> None:
     print('Starting Hack4GoodBOT...')
     app = Application.builder().token(config.TOKEN).build()
 
+    # Define the conversation handler
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('enroll', enroll_command.start_enroll)],
+        states={
+            enroll_command.NAME: [MessageHandler(filters.TEXT, enroll_command.ask_name)],
+            enroll_command.AGE: [MessageHandler(filters.TEXT, enroll_command.ask_age)],
+            enroll_command.GENDER: [CallbackQueryHandler(enroll_command.ask_gender)],
+            enroll_command.WORK_STATUS: [CallbackQueryHandler(enroll_command.ask_work_status)],
+            enroll_command.IMMIGRATION_STATUS: [CallbackQueryHandler(enroll_command.ask_immigration_status)],
+            enroll_command.INTERESTS: [CallbackQueryHandler(enroll_command.ask_interests)],
+            enroll_command.SKILLS: [CallbackQueryHandler(enroll_command.ask_skills)],
+            enroll_command.SUMMARY: [CallbackQueryHandler(enroll_command.ask_summary)],
+            enroll_command.CONFIRMATION: [CallbackQueryHandler(enroll_command.handle_confirmation,
+                                                               pattern='^confirm_(yes|no)$')]
+        },
+        fallbacks=[CommandHandler('cancel', enroll_command.cancel)]
+    )
+
+    # Add the conversation handler to the dispatcher
+    app.add_handler(conv_handler)
+
     # Commands
     app.add_handler(CommandHandler("start", start_command.start_command))
     app.add_handler(CommandHandler("help", help_command.help_command))
@@ -32,26 +53,6 @@ def main() -> None:
     app.add_handler(
         CallbackQueryHandler(register_command.confirmation_callback_handler, pattern='^(confirm_registration'
                                                                                      '|cancel_registration)$'))
-
-    # Define the conversation handler
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('enroll', enroll_command.start_enroll)],
-        states={
-            enroll_command.NAME: [MessageHandler(filters.TEXT, enroll_command.ask_name)],
-            enroll_command.AGE: [MessageHandler(filters.TEXT, enroll_command.ask_gender)],
-            enroll_command.GENDER: [CallbackQueryHandler(enroll_command.ask_work_status)],
-            enroll_command.WORK_STATUS: [CallbackQueryHandler(enroll_command.ask_immigration_status)],
-            enroll_command.IMMIGRATION_STATUS: [CallbackQueryHandler(enroll_command.ask_interests)],
-            enroll_command.INTERESTS: [CallbackQueryHandler(enroll_command.ask_skills)],
-            enroll_command.SKILLS: [CallbackQueryHandler(enroll_command.ask_summary)],
-            enroll_command.SUMMARY: [CallbackQueryHandler(enroll_command.handle_confirmation,
-                                                          pattern='^confirm_(yes|no)$')]
-        },
-        fallbacks=[CommandHandler('cancel', enroll_command.cancel)]
-    )
-
-    # Add the conversation handler to the dispatcher
-    app.add_handler(conv_handler)
 
     # Messages
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, Miscellaneous.response.handle_message))

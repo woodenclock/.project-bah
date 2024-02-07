@@ -4,8 +4,10 @@ from google.oauth2.service_account import Credentials
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ConversationHandler
 
+
 # Define the conversation states
-NAME, AGE, GENDER, WORK_STATUS, IMMIGRATION_STATUS, INTERESTS, SKILLS, SUMMARY = range(8)
+NAME, AGE, GENDER, WORK_STATUS, IMMIGRATION_STATUS, INTERESTS, SKILLS, SUMMARY, CONFIRMATION= range(9)
+
 
 # Define the callback data for button handling
 GENDER_BUTTONS = ["Male", "Female", "Non-Binary", "Prefer Not to Say"]
@@ -15,8 +17,15 @@ INTERESTS_BUTTONS = ["Environment", "Animal Welfare", "Education and Mentoring",
                      "International Volunteering"]
 SKILLS_BUTTONS = ["Leadership", "Technical and Digital Skills", "Teaching and Mentoring Skills"]
 
+
 # Define the dictionary to store user information
 user_data = {}
+
+
+# Helper function to prompt for valid input
+async def reject_invalid(update, context, prompt_message):
+    await update.message.reply_text("Please enter a valid input!")
+    await update.message.reply_text(prompt_message)
 
 
 async def start_enroll(update, context):
@@ -29,25 +38,43 @@ async def start_enroll(update, context):
 
     # Ask for the user's name
     await update.message.reply_text("Let's get you enrolled into the Big At Hearts family! 🤩\n"
-                                    "Type  \'/cancel\'  to stop your enrollment.\nPlease enter your name:")
+                                    "Please enter your name:")
     return NAME
 
 
 async def ask_name(update, context):
-    # Store the user's name in the user_data dictionary
-    user_data[update.message.chat_id]['name'] = update.message.text
+    name = update.message.text.strip()
+    # Check if the name is valid (only alphabets and not starting with a "/")
+    if all(x.isalpha() or x.isspace() for x in name) and not name.startswith('/'):
+        # Store the valid name in the user_data dictionary
+        user_data[update.message.chat_id]['name'] = name
+        # Ask for age
+        await update.message.reply_text(f"Hi {name} 🖐️\n"
+                                        f"Nice to meet you!\n"
+                                        f"Please enter your age:")
+        return AGE
+    else:
+        # Reject invalid name input
+        await reject_invalid(update, context, "Please enter your name:")
+        return NAME
 
-    # Ask for age
-    await update.message.reply_text(f"Hi {user_data[update.message.chat_id]['name']} 🖐️\n"
-                                    f"Nice to meet you!\n"
-                                    f"Please enter your age:")
-    return AGE
+
+async def ask_age(update, context):
+    age = update.message.text
+    # Check if the age is valid (only numbers)
+    if age.isdigit() and 1 <= int(age) <= 100:
+        # Store the valid age in the user_data dictionary
+        user_data[update.effective_chat.id]['age'] = int(age)
+
+        # Proceed to ask for gender
+        return await ask_gender(update, context)
+    else:
+        # Reject invalid age input
+        await reject_invalid(update, context, "Please enter your age:")
+        return AGE
 
 
 async def ask_gender(update, context):
-    # Store the age in user_data
-    user_data[update.effective_chat.id]['age'] = update.message.text
-
     # Show gender options as buttons
     keyboard = [
         [InlineKeyboardButton("Male", callback_data='Male')],
@@ -59,7 +86,7 @@ async def ask_gender(update, context):
 
     # Ask for gender
     await update.message.reply_text("Please choose your gender:", reply_markup=reply_markup)
-    return GENDER
+    return WORK_STATUS
 
 
 async def ask_work_status(update, context):
@@ -76,13 +103,13 @@ async def ask_work_status(update, context):
 
     # Ask for work status
     await update.callback_query.message.edit_text("Please choose your work status:", reply_markup=reply_markup)
-    return WORK_STATUS
+
+    # Store the work status in user_data
+    user_data[update.callback_query.message.chat_id]['work_status'] = update.callback_query.data
+    return IMMIGRATION_STATUS
 
 
 async def ask_immigration_status(update, context):
-    # Store the work status in user_data
-    user_data[update.callback_query.message.chat_id]['work_status'] = update.callback_query.data
-
     # Show immigration status options as buttons
     keyboard = [
         [InlineKeyboardButton("Singapore Citizen", callback_data='Singapore Citizen')],
@@ -93,7 +120,7 @@ async def ask_immigration_status(update, context):
 
     # Ask for immigration status
     await update.callback_query.message.edit_text("Please choose your immigration status:", reply_markup=reply_markup)
-    return IMMIGRATION_STATUS
+    return INTERESTS
 
 
 async def ask_interests(update, context):
@@ -113,7 +140,7 @@ async def ask_interests(update, context):
 
     # Ask for interests
     await update.callback_query.message.edit_text("Please choose your interests:", reply_markup=reply_markup)
-    return INTERESTS
+    return SKILLS
 
 
 async def ask_skills(update, context):
@@ -130,7 +157,7 @@ async def ask_skills(update, context):
 
     # Ask for skills
     await update.callback_query.message.edit_text("Please choose your skills:", reply_markup=reply_markup)
-    return SKILLS
+    return SUMMARY
 
 
 async def ask_summary(update, context):
@@ -160,7 +187,7 @@ async def ask_summary(update, context):
         reply_markup=reply_markup
     )
 
-    return SUMMARY
+    return CONFIRMATION
 
 
 async def handle_confirmation(update, context):
@@ -215,7 +242,14 @@ def save_to_google_sheets(data):
 
 
 async def cancel(update, context):
-    # Clear the user_data and end the conversation
-    del user_data[update.message.chat_id]
-    await update.message.reply_text("Okay, let's start over.")
-    return start_enroll(update, context)
+    chat_id = update.message.chat_id
+    # Check if the user_data exists before trying to delete it
+    if chat_id in user_data:
+        del user_data[chat_id]
+        await update.message.reply_text("Your enrollment has been canceled.")
+    else:
+        await update.message.reply_text("You have not started enrollment.")
+
+    # Depending on your state management, you may need to end the conversation
+    return ConversationHandler.END
+
