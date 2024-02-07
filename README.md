@@ -42,29 +42,28 @@ Before you begin, ensure you have the following installed:
 
 ### Enrolling as a Volunteer
 
-**Command** `/enroll` initiates the volunteer enrollment process.<br />
+`/enroll` initiates the volunteer enrollment process.<br />
 Users are prompted to input information such as name, age, gender, work status, immigration status, interests, and skills. Upon submission, a summary of the entered details is displayed. Users can proceed to browse volunteering opportunities after enrollment.
 
 ### Browsing Volunteer Opportunities
 
-**Command** `/browse` displays a list of available volunteering opportunities.<br />
+`/browse` displays a list of available volunteering opportunities.<br />
 Users can view a list of opportunities and sign up for events by clicking the provided Registration link. 
 
 ### Viewing Registered, Attended, and Upcoming Events
 
-**Commands**
 - `/register`: Show events users have registered for.
 - `/attended`: Show events users have attended.
 - `/upcoming`: Show upcoming events users have registered for.
 
 ### Providing Feedback
 
-**Command** `/feedback` provides access to a feedback form.<br />
+`/feedback` provides access to a feedback form.<br />
 Users can choose an event and submit feedback and reflections through the provided Google Form.
 
 ### Requesting Certificates
 
-**Command** `/certificate` generates a certificate for attended events.
+`/certificate` generates a certificate for attended events.
 A PDF certificate will be provided for the event the user has attended.
 
 ## Data Storage
