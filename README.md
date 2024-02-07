@@ -63,7 +63,7 @@ Users can choose an event and submit feedback and reflections through the provid
 
 ### Requesting Certificates
 
-`/certificate` generates a certificate for attended events.
+`/certificate` generates a certificate for attended events.<br />
 A PDF certificate will be provided for the event the user has attended.
 
 ## Data Storage
