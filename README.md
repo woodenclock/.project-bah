@@ -38,33 +38,32 @@ Before you begin, ensure you have the following installed:
 
 4. Start the bot.
 
-## Usage
+## Usage 
 
 ### Enrolling as a Volunteer
 
-**Command**: `/enroll` - Initiates the volunteer enrollment process.
+`/enroll` initiates the volunteer enrollment process.<br />
 Users are prompted to input information such as name, age, gender, work status, immigration status, interests, and skills. Upon submission, a summary of the entered details is displayed. Users can proceed to browse volunteering opportunities after enrollment.
 
 ### Browsing Volunteer Opportunities
 
-**Command**: `/browse` - Displays a list of available volunteering opportunities.
+`/browse` displays a list of available volunteering opportunities.<br />
 Users can view a list of opportunities and sign up for events by clicking the provided Registration link. 
 
 ### Viewing Registered, Attended, and Upcoming Events
 
-**Command**:
 - `/register`: Show events users have registered for.
 - `/attended`: Show events users have attended.
 - `/upcoming`: Show upcoming events users have registered for.
 
 ### Providing Feedback
 
-**Command**: `/feedback`
+`/feedback`<br />
 Users can choose an event and submit feedback and reflections using the provided Google Form.
 
 ### Requesting Certificates
 
-**Command**: `/certificate`
+`/certificate`<br />
 A PDF certificate will be provided for the event the user has attended.
 
 ## Data Storage
