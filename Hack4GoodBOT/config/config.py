@@ -21,3 +21,10 @@ SERVICE_ACCOUNT_FILE = 'config/credentials.json'
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/spreadsheets"]
 creds = ServiceAccountCredentials.from_json_keyfile_name('config/credentials.json', scope)
 client = gspread.authorize(creds)
+
+# Certificate Generation
+
+template_path = "../Certificate/certificate_template.png"
+font_path = "../Certificate/times.ttf"
+name_position = (1000, 707)
+output_path = "../Certificate/personalized_certificate.png"

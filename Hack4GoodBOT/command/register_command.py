@@ -3,9 +3,27 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (Application, CommandHandler, ConversationHandler, MessageHandler, filters, ContextTypes,
                           CallbackContext, CallbackQueryHandler)
 
+NAME, REGISTER = range(2)
+
+
+async def register_command(update: Update, context: CallbackContext) -> int:
+    await update.message.reply_text("Please enter your full name:")
+    return NAME
+
+
+async def validate_name(update: Update, context: CallbackContext) -> int:
+    name = update.message.text.strip()
+    if all(x.isalpha() or x.isspace() for x in name) and not name.startswith('/'):
+        context.user_data['name'] = name  # Store the valid name
+        await show_opportunities(update, context)  # Proceed to show registration buttons
+        return REGISTER
+    else:
+        await update.message.reply_text("Please enter a valid name (alphabetic characters only):")
+        return NAME  # Stay in the NAME state to re-prompt for the name
+
 
 # Register Command
-async def register_command(update: Update, context: CallbackContext) -> None:
+async def show_opportunities(update: Update, context: CallbackContext) -> None:
     # Access the sheet with volunteering opportunities
     events_sheet = config.client.open_by_key(config.SHEET_ID).worksheet(config.opportunities_sheet_name)
     events = events_sheet.get_all_records()
@@ -64,8 +82,9 @@ async def confirmation_callback_handler(update: Update, context: CallbackContext
     await query.answer()
 
     if 'confirm_registration' in query.data:
-        # Retrieve the chosen event name from the user's context
+        # Retrieve the chosen event name and the user's name from the user's context
         event_name = context.user_data.get('chosen_event')
+        user_name = context.user_data.get('name')  # Retrieve the user's name
         events_sheet = config.client.open_by_key(config.SHEET_ID).worksheet('Opportunities')
         events = events_sheet.get_all_records()
 
@@ -80,9 +99,8 @@ async def confirmation_callback_handler(update: Update, context: CallbackContext
             # Access the 'Registrations' sheet
             registrations_sheet = config.client.open_by_key(config.SHEET_ID).worksheet(config.register_sheet_name)
 
-            # Append the new registration
-            # Include the username along with the other details
-            registrations_sheet.append_row([event_name, date_of_event, user_id, username])
+            # Append the new registration including the user's name
+            registrations_sheet.append_row([event_name, date_of_event, user_name, user_id, username])
 
             # Provide the link to the Google Form for additional details
             await query.edit_message_text(text=f"You have been registered for {event_name}. "
@@ -92,4 +110,16 @@ async def confirmation_callback_handler(update: Update, context: CallbackContext
 
     elif 'cancel_registration' in query.data:
         # User pressed "No", so we display the list of opportunities again
-        await query.edit_message_reply_markup(reply_markup=await register_command(query, context))
+        await query.edit_message_reply_markup(reply_markup=await show_opportunities(query, context))
+
+
+async def cancel(update: Update, context: CallbackContext) -> int:
+    # Clear any stored user data to reset the state
+    user_data = context.user_data.clear()
+
+    # Send a message to the user indicating the cancellation
+    await update.message.reply_text("Your action has been canceled. "
+                                    "If you want to start over, just send /register again.")
+
+    # Return ConversationHandler.END to indicate that the conversation is over
+    return ConversationHandler.END

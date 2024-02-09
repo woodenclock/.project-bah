@@ -38,7 +38,7 @@ async def start_enroll(update, context):
 
     # Ask for the user's name
     await update.message.reply_text("Let's get you enrolled into the Big At Hearts family! 🤩\n"
-                                    "Please enter your name:")
+                                    "Please enter your full name:")
     return NAME
 
 
@@ -62,7 +62,7 @@ async def ask_name(update, context):
 async def ask_age(update, context):
     age = update.message.text
     # Check if the age is valid (only numbers)
-    if age.isdigit() and 1 <= int(age) <= 100:
+    if age.isdigit() and 1 <= int(age) <= 100 and not age.startswith('/'):
         # Store the valid age in the user_data dictionary
         user_data[update.effective_chat.id]['age'] = int(age)
 

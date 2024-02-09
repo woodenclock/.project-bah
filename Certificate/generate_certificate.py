@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw, ImageFont
 def create_certificate(
         name, date, course
 ):
-    template_path = "./certificate_template.png"
+    template_path = "certificate_template.png"
     font_path = "Certificate/times.ttf"
     name_position = (1000, 707)
     output_path = "./personalized_certificate.png"
