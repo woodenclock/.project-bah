@@ -29,17 +29,19 @@ async def reject_invalid(update, context, prompt_message):
 
 
 async def start_enroll(update, context):
-    # Get User ID & Tele Handle
     chat_id = update.message.chat_id
-    user_data[chat_id] = {
-        'telegram_user_id': chat_id,
-        'telegram_username': update.message.from_user.username,
-    }
-
-    # Ask for the user's name
-    await update.message.reply_text("Let's get you enrolled into the Big At Hearts family! 🤩\n"
-                                    "Please enter your full name:")
-    return NAME
+    if check_enrollment(chat_id):
+        await update.message.reply_text("Our records show that you have already enrolled. "
+                                        "If you need to update your details, please contact support.")
+        return ConversationHandler.END
+    else:
+        user_data[chat_id] = {
+            'telegram_user_id': chat_id,
+            'telegram_username': update.message.from_user.username,
+        }
+        await update.message.reply_text("Let's get you enrolled into the Big At Hearts family! 🤩\n"
+                                        "Please enter your full name:")
+        return NAME
 
 
 async def ask_name(update, context):
@@ -190,9 +192,31 @@ async def ask_summary(update, context):
     return CONFIRMATION
 
 
+def check_enrollment(telegram_user_id):
+    credentials = Credentials.from_service_account_file(
+        config.SERVICE_ACCOUNT_FILE, scopes=config.scope)
+    service = build('sheets', 'v4', credentials=credentials)
+    spreadsheet_id = config.SHEET_ID
+    range_name = 'Volunteers!A2:E'  # Adjust the range based on where the telegram_user_id is stored
+
+    try:
+        result = service.spreadsheets().values().get(
+            spreadsheetId=spreadsheet_id, range=range_name).execute()
+        values = result.get('values', [])
+
+        for row in values:
+            # Assuming the telegram_user_id is in the first column
+            if str(telegram_user_id) == row[0]:
+                return True
+        return False
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return False
+
+
 async def handle_confirmation(update, context):
     query = update.callback_query
-    await query.answer()  # Important to provide feedback to the user that their click was received
+    query.answer()  # Important to provide feedback to the user that their click was received
 
     if query.data == 'confirm_yes':
         # Save the data to Google Sheets

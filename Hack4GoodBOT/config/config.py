@@ -22,9 +22,8 @@ scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 creds = ServiceAccountCredentials.from_json_keyfile_name('config/credentials.json', scope)
 client = gspread.authorize(creds)
 
-# Certificate Generation
-
-template_path = "../Certificate/certificate_template.png"
-font_path = "../Certificate/times.ttf"
+# certificate Generation
+template_path = "./certificate/certificate_template.png"
+font_path = "./certificate/times.ttf"
 name_position = (1000, 707)
-output_path = "../Certificate/personalized_certificate.png"
+output_path = "./certificate/personalized_certificate.png"
