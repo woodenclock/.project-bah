@@ -1,4 +1,13 @@
-from Hack4GoodBOT.config import config
+import sys
+import os
+
+# Append the directory of the parent folder to sys.path
+# so Python knows where to find the 'config' module.
+script_dir = os.path.dirname(os.path.abspath(__file__))  # Directory of the script
+parent_dir = os.path.dirname(script_dir)  # Parent directory
+sys.path.append(parent_dir)
+
+from config import config
 from googleapiclient.discovery import build
 from google.oauth2.service_account import Credentials
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup

@@ -1,5 +1,6 @@
 import logging
 import gspread
+import os
 from typing import Final
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -16,14 +17,18 @@ volunteer_sheet_name = 'Volunteers'
 # Set up logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
+# Get current working directory
+current_working_directory = os.getcwd()
+
 # Load credentials for Google Sheets
-SERVICE_ACCOUNT_FILE = 'config/credentials.json'
+SERVICE_ACCOUNT_FILE = os.path.join(current_working_directory, 'Hack4GoodBOT', 'config', 'credentials.json')
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/spreadsheets"]
-creds = ServiceAccountCredentials.from_json_keyfile_name('config/credentials.json', scope)
+creds = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_FILE, scope)
 client = gspread.authorize(creds)
 
 # certificate Generation
-template_path = "./certificate/certificate_template.png"
-font_path = "./certificate/times.ttf"
+base_dir = os.path.join(current_working_directory, 'Hack4GoodBOT', 'certificate')
+template_path = os.path.join(base_dir, 'certificate_template.png')
+font_path = os.path.join(base_dir, 'times.ttf')
 name_position = (1000, 707)
-output_path = "./certificate/personalized_certificate.png"
+output_path = os.path.join(base_dir, 'personalized_certificate.png')
