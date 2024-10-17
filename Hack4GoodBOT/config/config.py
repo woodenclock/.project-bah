@@ -26,7 +26,7 @@ scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 creds = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_FILE, scope)
 client = gspread.authorize(creds)
 
-# certificate Generation
+# Certificate Generation
 base_dir = os.path.join(current_working_directory, 'Hack4GoodBOT', 'certificate')
 template_path = os.path.join(base_dir, 'certificate_template.png')
 font_path = os.path.join(base_dir, 'times.ttf')

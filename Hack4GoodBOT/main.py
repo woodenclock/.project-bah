@@ -1,5 +1,5 @@
-import response
-from config import config
+from Hack4GoodBOT import response
+from Hack4GoodBOT.config import config
 from command import (start_command, help_command, browse_command, enroll_command, attended_command,
                      register_command, upcoming_command, feedback_command, certificate_command)
 from telegram import Update

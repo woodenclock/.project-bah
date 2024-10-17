@@ -1,5 +1,5 @@
-from config import config
-from command import enroll_command
+from Hack4GoodBOT.config import config
+from Hack4GoodBOT.command import enroll_command
 from telegram import Update
 from telegram.ext import (ContextTypes)
 
